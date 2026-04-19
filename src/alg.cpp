@@ -1,10 +1,10 @@
 // Copyright 2025 NNTU-CS
-#include <string>
-#include <map>
-#include "tstack.h"
-#include <string>
+#include "alg.h"
+
 #include <cctype>
 #include <sstream>
+#include <string>
+
 #include "tstack.h"
 
 int priority(char op) {
@@ -26,39 +26,39 @@ std::string infx2pstfx(const std::string& inf) {
     std::string result;
 
     for (size_t i = 0; i < inf.size(); ++i) {
-        if (isspace(inf[i])) continue;
-
-        if (isdigit(inf[i])) {
+        if (isspace(inf[i])) {
+            continue;
+        } else if (isdigit(inf[i])) {
             while (i < inf.size() && isdigit(inf[i])) {
                 result += inf[i];
-                i++;
+                ++i;
             }
             result += ' ';
-            i--;
+            --i;
         } else if (inf[i] == '(') {
-            ops.Put('(');
+            ops.push('(');
         } else if (inf[i] == ')') {
-            while (!ops.IsEmpty() && ops.Peek() != '(') {
-                result += ops.Peek();
+            while (!ops.isEmpty() && ops.top() != '(') {
+                result += ops.top();
                 result += ' ';
-                ops.Get();
+                ops.pop();
             }
-            ops.Get();
+            ops.pop();  // удалить '('
         } else {
-            while (!ops.IsEmpty() &&
-                   priority(ops.Peek()) >= priority(inf[i])) {
-                result += ops.Peek();
+            while (!ops.isEmpty() &&
+                   priority(ops.top()) >= priority(inf[i])) {
+                result += ops.top();
                 result += ' ';
-                ops.Get();
+                ops.pop();
             }
-            ops.Put(inf[i]);
+            ops.push(inf[i]);
         }
     }
 
-    while (!ops.IsEmpty()) {
-        result += ops.Peek();
+    while (!ops.isEmpty()) {
+        result += ops.top();
         result += ' ';
-        ops.Get();
+        ops.pop();
     }
 
     return result;
@@ -71,15 +71,15 @@ int eval(const std::string& post) {
 
     while (iss >> token) {
         if (isdigit(token[0])) {
-            st.Put(std::stoi(token));
+            st.push(std::stoi(token));
         } else {
-            int b = st.Peek();
-            st.Get();
-            int a = st.Peek();
-            st.Get();
-            st.Put(apply(a, b, token[0]));
+            int b = st.top();
+            st.pop();
+            int a = st.top();
+            st.pop();
+            st.push(apply(a, b, token[0]));
         }
     }
 
-    return st.Peek();
+    return st.top();
 }
