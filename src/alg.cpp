@@ -43,7 +43,7 @@ std::string infx2pstfx(const std::string& inf) {
                 result += ' ';
                 ops.pop();
             }
-            ops.pop();  // удалить '('
+            ops.pop();
         } else {
             while (!ops.isEmpty() &&
                    priority(ops.top()) >= priority(inf[i])) {
@@ -59,6 +59,11 @@ std::string infx2pstfx(const std::string& inf) {
         result += ops.top();
         result += ' ';
         ops.pop();
+    }
+
+    // убрать последний пробел
+    if (!result.empty() && result.back() == ' ') {
+        result.pop_back();
     }
 
     return result;
