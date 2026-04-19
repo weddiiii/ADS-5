@@ -2,6 +2,10 @@
 #include <string>
 #include <map>
 #include "tstack.h"
+#include <string>
+#include <cctype>
+#include <sstream>
+#include "tstack.h"
 
 int priority(char op) {
     if (op == '+' || op == '-') return 1;
@@ -10,17 +14,15 @@ int priority(char op) {
 }
 
 int apply(int a, int b, char op) {
-    switch (op) {
-        case '+': return a + b;
-        case '-': return a - b;
-        case '*': return a * b;
-        case '/': return a / b;
-    }
+    if (op == '+') return a + b;
+    if (op == '-') return a - b;
+    if (op == '*') return a * b;
+    if (op == '/') return a / b;
     return 0;
 }
 
 std::string infx2pstfx(const std::string& inf) {
-  TStack<char, 100> ops;
+    TStack<char, 100> ops;
     std::string result;
 
     for (size_t i = 0; i < inf.size(); ++i) {
@@ -28,54 +30,56 @@ std::string infx2pstfx(const std::string& inf) {
 
         if (isdigit(inf[i])) {
             while (i < inf.size() && isdigit(inf[i])) {
-                result += inf[i++];
+                result += inf[i];
+                i++;
             }
             result += ' ';
             i--;
-        }
-        else if (inf[i] == '(') {
-            ops.push('(');
-        }
-        else if (inf[i] == ')') {
-            while (!ops.isEmpty() && ops.top() != '(') {
-                result += ops.top();
+        } else if (inf[i] == '(') {
+            ops.Put('(');
+        } else if (inf[i] == ')') {
+            while (!ops.IsEmpty() && ops.Peek() != '(') {
+                result += ops.Peek();
                 result += ' ';
-                ops.pop();
+                ops.Get();
             }
-            ops.pop();
-        }
-        else {
-            while (!ops.isEmpty() &&
-                   priority(ops.top()) >= priority(inf[i])) {
-                result += ops.top();
+            ops.Get();
+        } else {
+            while (!ops.IsEmpty() &&
+                   priority(ops.Peek()) >= priority(inf[i])) {
+                result += ops.Peek();
                 result += ' ';
-                ops.pop();
+                ops.Get();
             }
-            ops.push(inf[i]);
+            ops.Put(inf[i]);
         }
-}
-while (!ops.isEmpty()) {
-        result += ops.top();
+    }
+
+    while (!ops.IsEmpty()) {
+        result += ops.Peek();
         result += ' ';
-        ops.pop();
+        ops.Get();
     }
 
     return result;
 }
-int eval(const std::string& pref) {
-  TStack<int, 100> st;
+
+int eval(const std::string& post) {
+    TStack<int, 100> st;
     std::istringstream iss(post);
     std::string token;
 
     while (iss >> token) {
         if (isdigit(token[0])) {
-            st.push(std::stoi(token));
+            st.Put(std::stoi(token));
         } else {
-            int b = st.top(); st.pop();
-            int a = st.top(); st.pop();
-            st.push(apply(a, b, token[0]));
+            int b = st.Peek();
+            st.Get();
+            int a = st.Peek();
+            st.Get();
+            st.Put(apply(a, b, token[0]));
         }
     }
 
-    return st.top();
+    return st.Peek();
 }
